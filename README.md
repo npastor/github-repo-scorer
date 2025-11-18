@@ -2,13 +2,14 @@
 
 > This project calculates a popularity score for GitHub repositories by analyzing key metrics such as stars, forks, and
 > the recency of updates. The scoring system identifies the most active and popular repositories, making it faster to
-> find relevant projects.
+> find relevant projects. It provides a Search Repositories API that is paginated and allows users to filter results by
+> programming language and creation date. It returns repositories with score sorted by score value in descending order.
 >
 > Scoring uses weighted scoring strategy, where following weights have been assigned to each criteria
 > - Stars – logarithmically weighted.(0.5)
 > - Forks – logarithmically weighted.(0.3)
 > - Recency of updates – weighted inversely by days since last update.(0.2)
-
+>
 > It uses following formula:
 > - score = 0.5 * log(stars + 1) + 0.3 * log(forks + 1) + 0.2 / (days_since_last_update + 1)
 
@@ -24,7 +25,9 @@
   not reflect active development or genuine user engagement. This can be configured in the service.
 - Currently, requests to the GitHub Search API are unauthenticated, so the application can only access public
   repositories.
-- Weights have been assigned to prioritize stars, forks, and the recency of updates, in that order.
+- Weights have been assigned to prioritize stars, forks, and the recency of updates, in that order. Additionally, the
+  GitHub Search API request is configured to return results sorted by stars in descending order to align with this
+  prioritization.
 
 ---
 
@@ -56,7 +59,7 @@ Follow these steps to set up and run the Spring Boot GitHub scoring application:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/github-repo-scorer.git
+   git clone https://github.com/npastor/github-repo-scorer.git
    cd github-repo-scorer
 2. **Build the docker image**
    ```bash
@@ -70,8 +73,11 @@ Follow these steps to set up and run the Spring Boot GitHub scoring application:
         - Click on the api and then click on `Try it out` button on the right side.
         - This API is paginated, default params are page_size = 100 and page = 1
         - It also returns results sorted by score(asc)
-    - Alternatively, you can use Postman to test the API endpoint.
+    - Alternatively, you can use Postman or curl to test the API endpoint.
         - GET http://localhost:8080/api/v1/repositories?language=java&created_after=2010-11-01&page=1&page_size=100
+        - curl -X
+          GET "http://localhost:8080/api/v1/repositories?language=java&created_after=2010-11-01&page=1&page_size=100"
+
 5. **To run tests**
     - cd github-repo-scorer
     - mvn test

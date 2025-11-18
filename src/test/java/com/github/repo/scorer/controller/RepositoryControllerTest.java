@@ -32,8 +32,8 @@ class RepositoryControllerTest {
 
     @Test
     void getRepositories_withDefaultPagination_returnsOk() throws Exception {
-        ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12");
-        ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12");
+        ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12", "2012-12-12", 500, 10);
+        ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12", "2012-12-12", 300, 10);
         ScoredRepositoriesResponse mockResponse = new ScoredRepositoriesResponse(2, 1, 100, List.of(repository_1, repository_2));
         when(repositorySearchService.searchAndScore(any(SearchRepositoryRequest.class)))
                 .thenReturn(mockResponse);
@@ -58,8 +58,8 @@ class RepositoryControllerTest {
 
     @Test
     void getRepositories_withUserConfiguredPagination_returnsOk() throws Exception {
-        ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12");
-        ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12");
+        ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12", "2012-12-12", 500, 10);
+        ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12", "2012-12-12", 300, 10);
         ScoredRepositoriesResponse mockResponse = new ScoredRepositoriesResponse(2, 2, 50, List.of(repository_1, repository_2));
         when(repositorySearchService.searchAndScore(any(SearchRepositoryRequest.class)))
                 .thenReturn(mockResponse);

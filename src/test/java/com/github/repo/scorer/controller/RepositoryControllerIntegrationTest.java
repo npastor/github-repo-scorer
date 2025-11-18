@@ -41,7 +41,7 @@ public class RepositoryControllerIntegrationTest {
         Repository repository_1 = new Repository(1, "repo1", "repo1 description", "2020-11-18T12:00:00Z", "2025-11-18T12:00:00Z", 100, 50000, "java");
         Repository repository_2 = new Repository(2, "repo2", "repo2 description", "2019-11-18T12:00:00Z", "2025-11-18T12:00:00Z", 200, 400, "java");
         SearchRepositoriesResponse mockResponse = new SearchRepositoriesResponse(2, List.of(repository_1, repository_2));
-        when(githubFeignClient.searchRepositories(anyString(), anyInt(), anyInt()))
+        when(githubFeignClient.searchRepositories(anyString(), anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mockResponse);
 
         var result = mockMvc.perform(get("/api/v1/repositories")
@@ -61,6 +61,12 @@ public class RepositoryControllerIntegrationTest {
                 .andExpect(jsonPath("$.repositories[1].created_at").value("2019-11-18T12:00:00Z"))
                 .andExpect(jsonPath("$.repositories[0].language").value("java"))
                 .andExpect(jsonPath("$.repositories[1].language").value("java"))
+                .andExpect(jsonPath("$.repositories[0].stars").value("50000"))
+                .andExpect(jsonPath("$.repositories[1].stars").value("400"))
+                .andExpect(jsonPath("$.repositories[0].forks").value("100"))
+                .andExpect(jsonPath("$.repositories[1].forks").value("200"))
+                .andExpect(jsonPath("$.repositories[0].updated_at").value("2025-11-18T12:00:00Z"))
+                .andExpect(jsonPath("$.repositories[1].updated_at").value("2025-11-18T12:00:00Z"))
                 .andReturn().getResponse().getContentAsString();
 
 
@@ -77,7 +83,7 @@ public class RepositoryControllerIntegrationTest {
     @Test
     void getRepositories_noResultsFound() throws Exception {
         SearchRepositoriesResponse mockResponse = new SearchRepositoriesResponse(0, Collections.emptyList());
-        when(githubFeignClient.searchRepositories(anyString(), anyInt(), anyInt()))
+        when(githubFeignClient.searchRepositories(anyString(), anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(mockResponse);
 
         mockMvc.perform(get("/api/v1/repositories")

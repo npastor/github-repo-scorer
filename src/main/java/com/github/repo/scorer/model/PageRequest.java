@@ -1,4 +1,4 @@
 package com.github.repo.scorer.model;
 
-public record PageRequest(Integer pageSize, Integer page) {
+public record PageRequest(int pageSize, int page) {
 }

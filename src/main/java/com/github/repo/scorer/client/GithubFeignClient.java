@@ -13,7 +13,9 @@ public interface GithubFeignClient {
     SearchRepositoriesResponse searchRepositories(
             @RequestParam("q") String query,
             @RequestParam("per_page") int perPage,
-            @RequestParam("page") int page
+            @RequestParam("page") int page,
+            @RequestParam("sort") String sort,
+            @RequestParam("order") String order
 
     );
 }

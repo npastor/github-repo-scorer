@@ -19,6 +19,8 @@ import java.util.Comparator;
 
 @Service
 public class GithubRepositorySearchService implements RepositorySearchService {
+    public static final String STARS = "stars";
+    public static final String DESC = "desc";
     private static final Instant MIN_GITHUB_PUSHED_AT = Instant.parse("2008-04-01T00:00:00Z");
     private static final Logger log = LoggerFactory.getLogger(GithubRepositorySearchService.class);
     private final GithubFeignClient githubClient;
@@ -57,7 +59,7 @@ public class GithubRepositorySearchService implements RepositorySearchService {
         SearchRepositoriesResponse response = null;
         try {
             log.info("Starting GitHub repository search with query: {}", query);
-            response = githubClient.searchRepositories(query, pageSize, page);
+            response = githubClient.searchRepositories(query, pageSize, page, STARS, DESC);
             if (response != null) log.info("Found results, total count: {}", response.total_count());
         } catch (FeignException e) {
             mapException(e);
@@ -72,7 +74,6 @@ public class GithubRepositorySearchService implements RepositorySearchService {
         }
 
         var repositories = response.items().stream()
-                .filter(repository -> !repository.pushed_at().isBlank())
                 .map(this::toScoredRepository)
                 .sorted(Comparator.comparingDouble(ScoredRepository::score).reversed())
                 .toList();
@@ -94,7 +95,10 @@ public class GithubRepositorySearchService implements RepositorySearchService {
                 repository.description(),
                 score,
                 repository.language(),
-                repository.created_at()
+                repository.created_at(),
+                repository.pushed_at(),
+                repository.stargazers_count(),
+                repository.forks_count()
         );
     }
 
@@ -108,7 +112,7 @@ public class GithubRepositorySearchService implements RepositorySearchService {
 
     /*
      * This logic can be improved further. Github guarantees created_at, so if pushed_at is null we can use created_at.
-     * If something goes wrong with parsing we default to minimum date that github repo was created.
+     * If something goes wrong with parsing we default to minimum date github repo was created.
      * Alternatively, we can ignore this repository.
      * */
     private Instant getUpdatedAtInstant(Repository repository) {
