@@ -7,8 +7,7 @@ import com.github.repo.scorer.service.RepositorySearchService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,8 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(RepositoryController.class)
 class RepositoryControllerTest {
 
     @Autowired
@@ -37,7 +35,6 @@ class RepositoryControllerTest {
         ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12");
         ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12");
         ScoredRepositoriesResponse mockResponse = new ScoredRepositoriesResponse(2, 1, 100, List.of(repository_1, repository_2));
-
         when(repositorySearchService.searchAndScore(any(SearchRepositoryRequest.class)))
                 .thenReturn(mockResponse);
 
@@ -64,7 +61,6 @@ class RepositoryControllerTest {
         ScoredRepository repository_1 = new ScoredRepository(1, "repo1", "repo1 description", 0.4, "java", "2012-12-12");
         ScoredRepository repository_2 = new ScoredRepository(2, "repo2", "repo2 description", 0.3, "java", "2012-12-12");
         ScoredRepositoriesResponse mockResponse = new ScoredRepositoriesResponse(2, 2, 50, List.of(repository_1, repository_2));
-
         when(repositorySearchService.searchAndScore(any(SearchRepositoryRequest.class)))
                 .thenReturn(mockResponse);
 

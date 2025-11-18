@@ -4,9 +4,7 @@ import com.github.repo.scorer.config.RepositoryScorerConfigurationProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 class WeightedRepositoryScorerTest {
 
@@ -20,46 +18,80 @@ class WeightedRepositoryScorerTest {
     }
 
     @Test
-    void testScoreCalculation_basic() {
-        int stars = 10;
-        int forks = 5;
-        int daysAgo = 2;
-        double expectedScore = calculateExpectedScore(stars, forks, daysAgo);
+    void testAndCompareScoreWhenOneRepoHasMoreStars() {
+        double lessStarsScore = scorer.calculateScore(200, 10, 2);
+        double highStarsScore = scorer.calculateScore(500, 10, 2);
 
-        double score = scorer.calculateScore(stars, forks, daysAgo);
-
-        assertEquals(expectedScore, score);
+        assertTrue(highStarsScore > lessStarsScore);
     }
 
     @Test
-    void testScoreCalculation_noStarsNoForks() {
-        int stars = 0;
-        int forks = 0;
-        int daysAgo = 9;
-        double expectedScore = calculateExpectedScore(stars, forks, daysAgo);
+    void testAndCompareScoreWhenOneRepoHasMoreForks() {
+        double lessForksScore = scorer.calculateScore(500, 9, 2);
+        double highForksScore = scorer.calculateScore(500, 10, 2);
 
-        double score = scorer.calculateScore(stars, forks, daysAgo);
-
-        assertEquals(expectedScore, score);
+        assertTrue(highForksScore > lessForksScore);
     }
 
     @Test
-    void testScoreCalculation_longTimeSinceUpdate() {
-        int stars = 5;
-        int forks = 3;
-        int daysAgo = 5890;
-        double expectedScore = calculateExpectedScore(stars, forks, daysAgo);
+    void testAndCompareScoreWhenOneRepoHasMoreDaysAgo() {
+        double lessDaysAgoScore = scorer.calculateScore(500, 5, 2);
+        double highDaysAgoScore = scorer.calculateScore(500, 5, 5);
 
-        double score = scorer.calculateScore(stars, forks, daysAgo);
-
-        assertEquals(expectedScore, score);
+        assertTrue(highDaysAgoScore < lessDaysAgoScore); // as this is inverse, we want more recently updated repo
     }
 
-    private double calculateExpectedScore(int stars, int forks, int daysAgo) {
-        double expected = Math.log(stars + 1) * properties.starsWeight()
-                + Math.log(forks + 1) * properties.forksWeight()
-                + properties.updatedAtWeight() / (1 + daysAgo);
-        BigDecimal bd = new BigDecimal(expected).setScale(2, BigDecimal.ROUND_HALF_UP);
-        return bd.doubleValue();
+    @Test
+    void testScoreWithZeroValues() {
+        double zeroScore = scorer.calculateScore(0, 0, 0);
+        double normalScore = scorer.calculateScore(100, 1, 1);
+
+        assertTrue(normalScore > zeroScore);
+    }
+
+    @Test
+    void testScoreWithEqualValues() {
+        double score1 = scorer.calculateScore(500, 5, 2);
+        double score2 = scorer.calculateScore(500, 5, 2);
+
+        assertEquals(score1, score2);
+    }
+
+    @Test
+    void testScoreCombination() {
+        double scoreA = scorer.calculateScore(500, 10, 2); // more forks, fewer days
+        double scoreB = scorer.calculateScore(600, 5, 5);  // more stars, fewer forks, older
+
+        assertTrue(scoreA > scoreB);
+    }
+
+    @Test
+    void testNegativeStarsWeightThrowException() {
+        properties = new RepositoryScorerConfigurationProperties(-0.5, 0.3, 0.2);
+        scorer = new WeightedRepositoryScorer(properties);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            scorer.calculateScore(500, 10, 2);
+        });
+    }
+
+    @Test
+    void testNegativeForksWeightThrowException() {
+        properties = new RepositoryScorerConfigurationProperties(0.5, -0.3, 0.2);
+        scorer = new WeightedRepositoryScorer(properties);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            scorer.calculateScore(500, 10, 2);
+        });
+    }
+
+    @Test
+    void testNegativeUpdatedAtWeightThrowException() {
+        properties = new RepositoryScorerConfigurationProperties(0.5, 0.3, -0.2);
+        scorer = new WeightedRepositoryScorer(properties);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            scorer.calculateScore(500, 10, 2);
+        });
     }
 }

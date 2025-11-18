@@ -24,7 +24,7 @@ public class SearchQueryBuilder {
         }
 
         query.append("archived:").append(archived).append(" ");
-        query.append("mirror:").append(mirror).append(" ");
+        query.append("mirror:").append(mirror);
 
         return query.toString();
     }

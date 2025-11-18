@@ -29,7 +29,7 @@ class GithubRepositorySearchServiceTest {
 
     private GithubFeignClient githubClient;
     private RepositoryScorer repositoryScorer;
-    private GithubRepositorySearchService service;
+    private RepositorySearchService service;
 
     @BeforeEach
     void setup() {
@@ -39,12 +39,12 @@ class GithubRepositorySearchServiceTest {
     }
 
     @Test
-    void getScoredRepositories_returnsScoredRepositories() {
-        var repo1 = new Repository(1, "repo1", "desc1", "2023-01-27T02:25:38Z", "2023-01-27T02:25:38Z", 500,
-                8000, "Java");
-        var repo2 = new Repository(2, "repo2", "desc2", "2022-01-27T02:25:38Z", "2023-01-27T02:25:38Z", 51000,
-                10000, "Java");
-        var searchResponse = new SearchRepositoriesResponse(2, false, List.of(repo1, repo2));
+    void getScoredRepositories_returnsScoredRepositoriesSortedByScoreASC() {
+        var repoWithLessStars = new Repository(1, "repo1", "desc1", "2023-01-27T02:25:38Z", "2023-01-27T02:25:38Z", 500,
+                1000, "Java");
+        var repoWithMoreStars = new Repository(2, "repo2", "desc2", "2022-01-27T02:25:38Z", "2023-01-27T02:25:38Z", 500,
+                1001, "Java");
+        var searchResponse = new SearchRepositoriesResponse(2, List.of(repoWithLessStars, repoWithMoreStars));
         when(githubClient.searchRepositories(anyString(), anyInt(), anyInt())).thenReturn(searchResponse);
         var request = new SearchRepositoryRequest(
                 new SearchRepositoryQuery("Java", "2020-01-01"),
@@ -70,8 +70,24 @@ class GithubRepositorySearchServiceTest {
     }
 
     @Test
-    void getScoredRepositories_returnsEmptyResponseIfGitHubSearchIsNull() {
-        var searchResponse = new SearchRepositoriesResponse(0, false, null);
+    void getScoredRepositories_returnsEmptyResponseIfGitHubSearchResponseIsNull() {
+        when(githubClient.searchRepositories(anyString(), anyInt(), anyInt())).thenReturn(null);
+        var request = new SearchRepositoryRequest(
+                new SearchRepositoryQuery("Java", "2020-01-01"),
+                new PageRequest(1, 10)
+        );
+
+        var response = service.searchAndScore(request);
+
+        assertEquals(0, response.total_count());
+        assertEquals(10, response.page());
+        assertEquals(1, response.page_size());
+        assertEquals(0, response.repositories().size());
+    }
+
+    @Test
+    void getScoredRepositories_returnsEmptyResponseIfGitHubSearchResponseRepositoriesIsNull() {
+        var searchResponse = new SearchRepositoriesResponse(0, null);
         when(githubClient.searchRepositories(anyString(), anyInt(), anyInt())).thenReturn(searchResponse);
         var request = new SearchRepositoryRequest(
                 new SearchRepositoryQuery("Java", "2020-01-01"),
@@ -90,7 +106,7 @@ class GithubRepositorySearchServiceTest {
     void getScoredRepositories_callsGithubClient_WithCorrectArguments() {
         var repo = new Repository(1, "repo", "desc", "2023-01-27T02:25:38Z", "2023-01-27T02:25:38Z", 5,
                 2000, "Java");
-        var response = new SearchRepositoriesResponse(1, false, List.of(repo));
+        var response = new SearchRepositoriesResponse(1, List.of(repo));
 
         when(githubClient.searchRepositories(anyString(), anyInt(), anyInt())).thenReturn(response);
         ArgumentCaptor<String> queryCaptor = ArgumentCaptor.forClass(String.class);
@@ -104,7 +120,7 @@ class GithubRepositorySearchServiceTest {
         service.searchAndScore(request);
 
         verify(githubClient).searchRepositories(queryCaptor.capture(), pageCaptor.capture(), pageSizeCaptor.capture());
-        assertEquals("language:Java created:>2020-01-01 archived:false mirror:false ", queryCaptor.getValue());
+        assertEquals("language:Java created:>2020-01-01 archived:false mirror:false", queryCaptor.getValue());
         assertEquals(1, pageCaptor.getValue());
         assertEquals(10, pageSizeCaptor.getValue());
     }
