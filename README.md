@@ -72,7 +72,7 @@ Follow these steps to set up and run the Spring Boot GitHub scoring application:
         - http://localhost:8080/swagger-ui/index.html
         - Click on the api and then click on `Try it out` button on the right side.
         - This API is paginated, default params are page_size = 100 and page = 1
-        - It also returns results sorted by score(asc)
+        - It also returns results sorted by score(desc)
     - Alternatively, you can use Postman or curl to test the API endpoint.
         - GET http://localhost:8080/api/v1/repositories?language=java&created_after=2010-11-01&page=1&page_size=100
         - curl -X
